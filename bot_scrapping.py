@@ -40,8 +40,8 @@ def get_price_and_stock(url):
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    print("\n🔍 HTML reçu (extrait) :")
-    print(response.text[:1000])  # Affiche les 1000 premiers caractères du HTML
+    print("\n🔍 URL testée :", url)
+    print("🔍 HTML reçu (extrait) :", response.text[:1000])
 
     # ✅ Vérifier si le produit est en stock
     stock = soup.find("p", class_="dXuIK p-small")
@@ -67,6 +67,7 @@ def send_alert(price, url):
     for chat_id in CHAT_IDS:
         try:
             bot.send_message(chat_id=chat_id, text=message)
+            print(f"📨 Notification envoyée à {chat_id}")
         except Exception as e:
             print(f"❌ Erreur d'envoi à {chat_id} :", e)
 
@@ -75,16 +76,17 @@ def run_bot():
         for product in PRODUCTS:
             url = product["url"]
             max_price = product["max_price"]
-            print("\n🔍 Vérification du produit...", url)
+            print("\n🔁 Vérification du produit :", url)
             in_stock, price = get_price_and_stock(url)
 
             if in_stock and price is not None and price <= max_price:
-                print(f"✅ Produit en stock à {price}€")
+                print(f"✅ Produit en stock à {price}€, envoi de la notification...")
                 send_alert(price, url)
             else:
-                print("❌ Pas de disponibilité ou prix trop élevé")
+                print(f"❌ Produit non conforme : en stock={in_stock}, prix={price}, limite={max_price}€")
 
         wait = CHECK_INTERVAL + random.randint(5, 15)  # anti-ban delay
+        print(f"⏳ Attente de {wait} secondes avant prochaine vérification...")
         time.sleep(wait)
 
 if __name__ == "__main__":
