@@ -13,8 +13,36 @@ PRODUCTS = [
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-mini-tin-2-booster-0820650550744",
-        "max_price": 50.0
-    }
+        "max_price": 20.0
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-dresseur-d-elite-pokevx5eli-0196214105140",
+        "max_price": 80.0
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-ev09-coffret-dresseur-d-elite-0196214108097",
+        "max_price": 80.0
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-accessoires-5b-0196214106024",
+        "max_price": 45.0
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-tech-sticker-3-pack-blister-0196214105249",
+        "max_price": 30.0
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-mini-tin-0196214105560?srsltid=AfmBOorSuqG5mXuj-cMO7oqRKa0oVZig00JEptbtVCqgm9XSxhcxgt6N",
+        "max_price": 20.0
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-poster-0196214105423?srsltid=AfmBOorHdPJC3WylpiPQJBMEVtjYHwlnnfMUwUxoz5m3MaDSr3Ssp5OI",
+        "max_price": 30.0
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-ex-mars-0196214106598",
+        "max_price": 60.0
+    },
 ]
 
 CHECK_INTERVAL = 60  # secondes (augmente pour limiter les blocages)
