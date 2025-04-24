@@ -9,39 +9,48 @@ import random
 PRODUCTS = [
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-de-rangement-4b-0196214105973",
-        "max_price": 45.0
+        "max_price": 45.0,
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-mini-tin-2-booster-0820650550744",
-        "max_price": 20.0
+        "max_price": 20.0,
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-dresseur-d-elite-pokevx5eli-0196214105140",
-        "max_price": 80.0
+        "max_price": 80.0,
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-ev09-coffret-dresseur-d-elite-0196214108097",
-        "max_price": 80.0
+        "max_price": 80.0,
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-accessoires-5b-0196214106024",
-        "max_price": 45.0
+        "max_price": 45.0,
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-tech-sticker-3-pack-blister-0196214105249",
-        "max_price": 30.0
+        "max_price": 30.0,
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-mini-tin-0196214105560?srsltid=AfmBOorSuqG5mXuj-cMO7oqRKa0oVZig00JEptbtVCqgm9XSxhcxgt6N",
-        "max_price": 20.0
+        "max_price": 20.0,
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-poster-0196214105423?srsltid=AfmBOorHdPJC3WylpiPQJBMEVtjYHwlnnfMUwUxoz5m3MaDSr3Ssp5OI",
-        "max_price": 30.0
+        "max_price": 30.0,
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-ex-mars-0196214106598",
-        "max_price": 60.0
+        "max_price": 60.0,
+        "silent": True
     },
 ]
 
@@ -104,12 +113,17 @@ def run_bot():
         for product in PRODUCTS:
             url = product["url"]
             max_price = product["max_price"]
+            silent = product.get("silent", False)
+
             print("\n🔁 Vérification du produit :", url)
             in_stock, price = get_price_and_stock(url)
 
             if in_stock and price is not None and price <= max_price:
                 print(f"✅ Produit en stock à {price}€, envoi de la notification...")
-                send_alert(price, url)
+                if not silent:
+                    send_alert(price, url)
+                else:
+                    print("🔕 Mode silencieux activé pour ce produit — pas de notification envoyée.")
             else:
                 print(f"❌ Produit non conforme : en stock={in_stock}, prix={price}, limite={max_price}€")
 
