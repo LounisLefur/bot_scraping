@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import telegram
+import os
 
 # --- CONFIG ---
 URL = "https://www.e.leclerc/fp/pokemon-coffret-de-rangement-4b-0196214105973"
@@ -9,8 +10,8 @@ MAX_PRICE = 45.0
 CHECK_INTERVAL = 10  # secondes
 
 # --- TELEGRAM ---
-TELEGRAM_TOKEN = "7928937259:AAHP3Hew2l3ZuPzLPi9xq8Xh4Web3mbxc0k"  # 🔁 Remplace par ton vrai token
-CHAT_IDS = ["8054802768", "6515900776"]            # 🔁 Remplace par ton vrai chat ID
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+CHAT_IDS = os.environ.get("CHAT_IDS", "").split(",")
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
 def get_price_and_stock():
@@ -37,7 +38,11 @@ def get_price_and_stock():
 
 def send_alert(price):
     message = f"🛒 Produit Leclerc disponible à {price:.2f}€ !\n\n👉 {URL}"
-    bot.send_message(chat_id=CHAT_ID, text=message)
+    for chat_id in CHAT_IDS:
+        try:
+            bot.send_message(chat_id=chat_id, text=message)
+        except Exception as e:
+            print(f"❌ Erreur d'envoi à {chat_id} :", e)
 
 def run_bot():
     while True:
