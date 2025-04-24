@@ -23,6 +23,16 @@ PRODUCTS = [
         "silent": True
     },
     {
+        "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0196214106154?srsltid=AfmBOor8T7Dr1tY7BmJ2eT6cyFUui2mUD4wFHtjCooP22Hgb7wrxnMt0",
+        "max_price": 50.0,
+        "silent": False
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-portfolio-a4-9-pochettes-5-boosters-0196214105096",
+        "max_price": 60.0,
+        "silent": False
+    },
+    {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-dresseur-d-elite-pokevx5eli-0196214105140",
         "max_price": 80.0,
         "silent": False
