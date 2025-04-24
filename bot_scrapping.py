@@ -6,8 +6,17 @@ import os
 import random
 
 # --- CONFIG ---
-URL = "https://www.e.leclerc/fp/pokemon-coffret-de-rangement-4b-0196214105973"
-MAX_PRICE = 45.0
+PRODUCTS = [
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-de-rangement-4b-0196214105973",
+        "max_price": 45.0
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-mini-tin-2-booster-0820650550744",
+        "max_price": 50.0
+    }
+]
+
 CHECK_INTERVAL = 60  # secondes (augmente pour limiter les blocages)
 
 # --- TELEGRAM ---
@@ -23,12 +32,12 @@ USER_AGENTS = [
     "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"
 ]
 
-def get_price_and_stock():
+def get_price_and_stock(url):
     headers = {
         "User-Agent": random.choice(USER_AGENTS),
         "Accept-Language": "fr-FR,fr;q=0.9"
     }
-    response = requests.get(URL, headers=headers)
+    response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
     print("\n🔍 HTML reçu (extrait) :")
@@ -53,8 +62,8 @@ def get_price_and_stock():
 
     return in_stock, price
 
-def send_alert(price):
-    message = f"🛒 Produit Leclerc disponible à {price:.2f}€ !\n\n👉 {URL}"
+def send_alert(price, url):
+    message = f"🛒 Produit Leclerc disponible à {price:.2f}€ !\n\n👉 {url}"
     for chat_id in CHAT_IDS:
         try:
             bot.send_message(chat_id=chat_id, text=message)
@@ -63,14 +72,17 @@ def send_alert(price):
 
 def run_bot():
     while True:
-        print("\n🔍 Vérification du produit...")
-        in_stock, price = get_price_and_stock()
+        for product in PRODUCTS:
+            url = product["url"]
+            max_price = product["max_price"]
+            print("\n🔍 Vérification du produit...", url)
+            in_stock, price = get_price_and_stock(url)
 
-        if in_stock and price is not None and price <= MAX_PRICE:
-            print(f"✅ Produit en stock à {price}€")
-            send_alert(price)
-        else:
-            print("❌ Pas de disponibilité ou prix trop élevé")
+            if in_stock and price is not None and price <= max_price:
+                print(f"✅ Produit en stock à {price}€")
+                send_alert(price, url)
+            else:
+                print("❌ Pas de disponibilité ou prix trop élevé")
 
         wait = CHECK_INTERVAL + random.randint(5, 15)  # anti-ban delay
         time.sleep(wait)
