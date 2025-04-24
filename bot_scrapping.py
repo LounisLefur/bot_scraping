@@ -18,6 +18,11 @@ PRODUCTS = [
         "silent": False
     },
     {
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-dresseur-d-elite-q2-2024-0820650558696",
+        "max_price": 80.0,
+        "silent": True
+    },
+    {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-dresseur-d-elite-pokevx5eli-0196214105140",
         "max_price": 80.0,
         "silent": False
