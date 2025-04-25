@@ -108,6 +108,7 @@ def get_price_and_stock_leclerc(url):
     print("\n🔍 [Leclerc] URL testée :", url)
 
     stock = soup.find("p", class_="dXuIK p-small")
+    print("📦 Bloc stock trouvé :", stock)
     in_stock = stock and "En stock" in stock.text
 
     try:
@@ -116,7 +117,9 @@ def get_price_and_stock_leclerc(url):
         euros = euros_tag.text.strip() if euros_tag else ""
         cents = cents_tag.text.strip() if cents_tag else "00"
         price = float(f"{euros}.{cents}") if euros and cents else None
-    except:
+        print("💶 Prix détecté :", euros, "euros et", cents, "centimes")
+    except Exception as e:
+        print("❌ Erreur lors de l'extraction du prix (Leclerc) :", e)
         price = None
 
     return in_stock, price
@@ -132,13 +135,17 @@ def get_price_and_stock_joueclub(url):
     print("\n🔍 [JouéClub] URL testée :", url)
 
     availability_block = soup.find("div", class_="c-product-add-to-cart-block__avaibility")
-    in_stock = availability_block and "stock en ligne" in availability_block.text.lower()
+    print("📦 Bloc disponibilité trouvé :", availability_block)
+    in_stock = availability_block and "stock" in availability_block.text.lower()
 
     try:
         price_block = soup.find("strong", class_="scalapay-price") or soup.find("div", class_="scalapay-price")
+        print("💶 Bloc prix trouvé :", price_block)
         price_text = price_block.text.strip().replace("\xa0€", "").replace("€", "").replace(",", ".") if price_block else ""
         price = float(price_text)
-    except:
+        print("💶 Prix détecté :", price)
+    except Exception as e:
+        print("❌ Erreur lors de l'extraction du prix (JouéClub) :", e)
         price = None
 
     return in_stock, price
@@ -159,8 +166,11 @@ def run_bot():
                 p = LECLERC_PRODUCTS[i]
                 in_stock, price = get_price_and_stock_leclerc(p["url"])
                 if in_stock and price is not None and price <= p["max_price"]:
+                    print(f"✅ [Leclerc] Produit en stock à {price}€")
                     if not p.get("silent", False):
                         send_alert(price, p["url"])
+                    else:
+                        print("🔕 [Leclerc] Mode silencieux — pas de notification envoyée.")
                 else:
                     print(f"❌ [Leclerc] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
@@ -168,8 +178,11 @@ def run_bot():
                 p = JOUECLUB_PRODUCTS[i]
                 in_stock, price = get_price_and_stock_joueclub(p["url"])
                 if in_stock and price is not None and price <= p["max_price"]:
+                    print(f"✅ [JouéClub] Produit en stock à {price}€")
                     if not p.get("silent", False):
                         send_alert(price, p["url"])
+                    else:
+                        print("🔕 [JouéClub] Mode silencieux — pas de notification envoyée.")
                 else:
                     print(f"❌ [JouéClub] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
