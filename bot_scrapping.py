@@ -50,8 +50,12 @@ def setup_selenium():
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--window-size=1920x1080')
+    options.add_argument('--user-agent=' + random.choice(USER_AGENTS))
     driver = webdriver.Chrome(options=options)
     return driver
+
 
 def get_price_and_stock_leclerc(url):
     headers = {
@@ -76,27 +80,44 @@ def get_price_and_stock_leclerc(url):
         price = None
     return in_stock, price
 
+
 def get_price_and_stock_cultura(url):
     print("\n🔍 [Cultura] URL testée :", url)
     driver = setup_selenium()
     driver.get(url)
-    time.sleep(3)
+    time.sleep(5)
     in_stock = False
     price = None
     try:
-        # Détection du stock
-        stock_elem = driver.find_element(By.CLASS_NAME, "addToCartPdp")
-        in_stock = "ajouter au panier" in stock_elem.text.lower()
+        body_html = driver.page_source
+        soup = BeautifulSoup(body_html, 'html.parser')
+
+        # Détection du stock par le bouton "ajouter au panier"
+        button = soup.find("button", class_="addToCartPdp")
+        if button and "ajouter" in button.text.lower():
+            in_stock = True
         print("📦 Bloc stock trouvé :", in_stock)
-        # Détection du prix
-        price_div = driver.find_element(By.CLASS_NAME, "price--big")
-        full_price = price_div.text.strip().replace("€", "").replace(",", ".")
-        price = float(full_price)
-        print("💶 Prix détecté :", price)
+
+        # Bloc prix Cultura
+        price_block = soup.find("div", class_="price price--big color-bluedark")
+        if price_block:
+            raw_price = price_block.get_text(strip=True).replace("€", "").replace(",", ".")
+            raw_price = re.findall(r"\d+\.\d+", raw_price)
+            if raw_price:
+                price = float(raw_price[0])
+                print("💶 Prix détecté :", price)
+            else:
+                print("❌ Aucune valeur de prix trouvée")
+        else:
+            print("❌ Aucun bloc de prix détecté sur la page Cultura")
+
     except Exception as e:
-        print("❌ Erreur d'extraction Cultura :", e)
-    driver.quit()
+        print("❌ Erreur Selenium Cultura:", e)
+    finally:
+        driver.quit()
+
     return in_stock, price
+
 
 def send_alert(price, url):
     message = f"\U0001F6D2 Produit disponible à {price:.2f}€ !\n\n👉 {url}"
@@ -106,6 +127,7 @@ def send_alert(price, url):
             print(f"\U0001F4E8 Notification envoyée à {chat_id}")
         except Exception as e:
             print(f"❌ Erreur d'envoi à {chat_id} :", e)
+
 
 def run_bot():
     while True:
