@@ -72,7 +72,7 @@ LECLERC_PRODUCTS = [
 CULTURA_PRODUCTS = [
     {
         "url": "https://www.cultura.com/p-bundle-6-boosters-evolutions-primastiques-pokemon-11841902.html",
-        "max_price": 400.0,
+        "max_price": 50.0,
         "silent": False
     },
     {
