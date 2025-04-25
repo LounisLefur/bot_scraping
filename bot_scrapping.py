@@ -52,7 +52,7 @@ PRODUCTS = [
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-ex-mars-0196214106598",
         "max_price": 60.0,
-        "silent": False
+        "silent": True
     },
 ]
 
