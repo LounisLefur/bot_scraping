@@ -87,14 +87,12 @@ CULTURA_PRODUCTS = [
     },
 ]
 
-CHECK_INTERVAL = 60  # secondes (augmente pour limiter les blocages)
+CHECK_INTERVAL = 60
 
-# --- TELEGRAM ---
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_IDS = os.environ.get("CHAT_IDS", "").split(",")
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
 
-# Liste de User-Agents pour simuler différents navigateurs
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
@@ -139,18 +137,21 @@ def get_price_and_stock_cultura(url):
 
     print("\n🔍 [Cultura] URL testée :", url)
 
-    # Vérification de la disponibilité
-    stock_tag = soup.find("div", class_="c-product-add-to-cart-block__avaibility")
     button_tag = soup.find("button", class_="addToCartPdp")
-    in_stock = (stock_tag and "Stock en ligne" in stock_tag.text) or button_tag is not None
-    print("📦 Bloc stock trouvé :", stock_tag or button_tag)
+    in_stock = button_tag is not None
+    print("📦 Bloc stock trouvé :", button_tag)
 
-    # Extraction du prix
     try:
         price_block = soup.find("div", class_="price--big")
         if price_block:
-            full_price = price_block.text.strip().replace("€", "").replace("\xa0", "").replace(",", ".")
-            price = float(full_price)
+            parts = price_block.stripped_strings
+            parts = list(parts)
+            if len(parts) >= 2:
+                euros = parts[0].strip()
+                cents = parts[1].replace(",", ".").replace("€", "").strip()
+                price = float(f"{euros}.{cents}")
+            else:
+                price = None
         else:
             price = None
         print("💶 Prix détecté :", price)
