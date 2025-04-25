@@ -8,6 +8,7 @@ import re
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 
 # --- CONFIG ---
 LECLERC_PRODUCTS = [
@@ -44,7 +45,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"
 ]
 
-
 def setup_selenium():
     options = Options()
     options.add_argument('--no-sandbox')
@@ -55,100 +55,67 @@ def setup_selenium():
     driver = webdriver.Chrome(options=options)
     return driver
 
-
-def get_price_and_stock_leclerc(url):
-    headers = {
-        "User-Agent": random.choice(USER_AGENTS),
-        "Accept-Language": "fr-FR,fr;q=0.9"
-    }
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    print("\n🔍 [Leclerc] URL testée :", url)
-    stock = soup.find("p", class_="dXuIK p-small")
-    print("📦 Bloc stock trouvé :", stock)
-    in_stock = stock and "En stock" in stock.text
-    try:
-        euros_tag = soup.find("span", class_="vcEUR")
-        cents_tag = soup.find("span", class_="bYgjT")
-        euros = euros_tag.text.strip() if euros_tag else ""
-        cents = cents_tag.text.strip() if cents_tag else "00"
-        price = float(f"{euros}.{cents}") if euros and cents else None
-        print("💶 Prix détecté :", euros, "euros et", cents, "centimes")
-    except Exception as e:
-        print("❌ Erreur lors de l'extraction du prix (Leclerc) :", e)
-        price = None
-    return in_stock, price
-
-
 def get_price_and_stock_cultura(url):
-    print("\n🔍 [Cultura] URL testée :", url)
     driver = setup_selenium()
     driver.get(url)
     time.sleep(5)
-    in_stock = False
-    price = None
+
     try:
-        body_html = driver.page_source
-        soup = BeautifulSoup(body_html, 'html.parser')
+        out_of_stock = driver.find_elements(By.CLASS_NAME, "stock.color-red")
+        available = driver.find_elements(By.CLASS_NAME, "addToCartPdp")
+        in_stock = len(out_of_stock) == 0 and len(available) > 0
+    except Exception:
+        in_stock = False
 
-        # Détection du stock par le bouton "ajouter au panier"
-        button = soup.find("button", class_="addToCartPdp")
-        if button and "ajouter" in button.text.lower():
-            in_stock = True
-        print("📦 Bloc stock trouvé :", in_stock)
+    try:
+        price_div = driver.find_element(By.CLASS_NAME, "price--big")
+        raw_price = price_div.text.strip().replace("\n", "").replace("€", "").replace(" ", "").replace(",", ".")
+        price = float(re.findall(r"\d+\.\d+", raw_price)[0])
+    except Exception:
+        price = None
 
-        # Bloc prix Cultura
-        price_block = soup.find("div", class_="price price--big color-bluedark")
-        if price_block:
-            raw_price = price_block.get_text(strip=True).replace("€", "").replace(",", ".")
-            raw_price = re.findall(r"\d+\.\d+", raw_price)
-            if raw_price:
-                price = float(raw_price[0])
-                print("💶 Prix détecté :", price)
-            else:
-                print("❌ Aucune valeur de prix trouvée")
-        else:
-            print("❌ Aucun bloc de prix détecté sur la page Cultura")
-
-    except Exception as e:
-        print("❌ Erreur Selenium Cultura:", e)
-    finally:
-        driver.quit()
-
+    driver.quit()
     return in_stock, price
 
-
 def send_alert(price, url):
-    message = f"\U0001F6D2 Produit disponible à {price:.2f}€ !\n\n👉 {url}"
+    message = f"🛒 Produit disponible à {price:.2f}€ !\n\n👉 {url}"
     for chat_id in CHAT_IDS:
         try:
             bot.send_message(chat_id=chat_id, text=message)
-            print(f"\U0001F4E8 Notification envoyée à {chat_id}")
+            print(f"📨 Notification envoyée à {chat_id}")
         except Exception as e:
             print(f"❌ Erreur d'envoi à {chat_id} :", e)
-
 
 def run_bot():
     while True:
         for p in LECLERC_PRODUCTS:
-            in_stock, price = get_price_and_stock_leclerc(p["url"])
+            print("\n🔍 [Leclerc] URL testée :", p["url"])
+            try:
+                headers = {"User-Agent": random.choice(USER_AGENTS)}
+                r = requests.get(p["url"], headers=headers)
+                soup = BeautifulSoup(r.text, 'html.parser')
+                stock = soup.find("p", class_="dXuIK p-small")
+                euros = soup.find("span", class_="vcEUR")
+                cents = soup.find("span", class_="bYgjT")
+                price = float(f"{euros.text}.{cents.text}") if euros and cents else None
+                in_stock = stock and "En stock" in stock.text
+            except:
+                in_stock, price = None, None
+
             if in_stock and price is not None and price <= p["max_price"]:
-                print(f"✅ [Leclerc] Produit en stock à {price}€")
-                if not p.get("silent", False):
+                print(f"✅ Produit en stock à {price}€")
+                if not p.get("silent"):
                     send_alert(price, p["url"])
-                else:
-                    print("🔕 [Leclerc] Mode silencieux — pas de notification envoyée.")
             else:
                 print(f"❌ [Leclerc] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
         for p in CULTURA_PRODUCTS:
+            print("\n🔍 [Cultura] URL testée :", p["url"])
             in_stock, price = get_price_and_stock_cultura(p["url"])
             if in_stock and price is not None and price <= p["max_price"]:
-                print(f"✅ [Cultura] Produit en stock à {price}€")
-                if not p.get("silent", False):
+                print(f"✅ Produit en stock à {price}€")
+                if not p.get("silent"):
                     send_alert(price, p["url"])
-                else:
-                    print("🔕 [Cultura] Mode silencieux — pas de notification envoyée.")
             else:
                 print(f"❌ [Cultura] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
