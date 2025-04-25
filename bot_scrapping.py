@@ -6,7 +6,7 @@ import os
 import random
 
 # --- CONFIG ---
-PRODUCTS = [
+LECLERC_PRODUCTS = [
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-de-rangement-4b-0196214105973",
         "max_price": 45.0,
@@ -69,6 +69,19 @@ PRODUCTS = [
     },
 ]
 
+JOUECLUB_PRODUCTS = [
+    {
+        "url": "https://www.joueclub.fr/pokemon/pokemon-coffret-accessoires-5-boosters-sac-de-rangement-0196214106024.html",
+        "max_price": 50.0,
+        "silent": False
+    },
+    {
+        "url": "https://www.joueclub.fr/pokemon/pokemon-deck-de-combat-q2-0820650558207.html",
+        "max_price": 50.0,
+        "silent": False
+    },
+]
+
 CHECK_INTERVAL = 60  # secondes (augmente pour limiter les blocages)
 
 # --- TELEGRAM ---
@@ -84,7 +97,7 @@ USER_AGENTS = [
     "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"
 ]
 
-def get_price_and_stock(url):
+def get_price_and_stock_leclerc(url):
     headers = {
         "User-Agent": random.choice(USER_AGENTS),
         "Accept-Language": "fr-FR,fr;q=0.9"
@@ -92,30 +105,46 @@ def get_price_and_stock(url):
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    print("\n🔍 URL testée :", url)
-    print("🔍 HTML reçu (extrait) :", response.text[:1000])
+    print("\n🔍 [Leclerc] URL testée :", url)
 
-    # ✅ Vérifier si le produit est en stock
     stock = soup.find("p", class_="dXuIK p-small")
-    print("📦 Bloc stock trouvé :", stock)
     in_stock = stock and "En stock" in stock.text
 
-    # ✅ Extraire le prix
     try:
         euros_tag = soup.find("span", class_="vcEUR")
         cents_tag = soup.find("span", class_="bYgjT")
         euros = euros_tag.text.strip() if euros_tag else ""
         cents = cents_tag.text.strip() if cents_tag else "00"
-        print("💶 Prix détecté :", euros, "euros et", cents, "centimes")
         price = float(f"{euros}.{cents}") if euros and cents else None
-    except Exception as e:
-        print("❌ Erreur lors de l'extraction du prix :", e)
+    except:
+        price = None
+
+    return in_stock, price
+
+def get_price_and_stock_joueclub(url):
+    headers = {
+        "User-Agent": random.choice(USER_AGENTS),
+        "Accept-Language": "fr-FR,fr;q=0.9"
+    }
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    print("\n🔍 [JouéClub] URL testée :", url)
+
+    availability_block = soup.find("div", class_="c-product-add-to-cart-block__avaibility")
+    in_stock = availability_block and "stock en ligne" in availability_block.text.lower()
+
+    try:
+        price_block = soup.find("strong", class_="scalapay-price") or soup.find("div", class_="scalapay-price")
+        price_text = price_block.text.strip().replace("\xa0€", "").replace("€", "").replace(",", ".") if price_block else ""
+        price = float(price_text)
+    except:
         price = None
 
     return in_stock, price
 
 def send_alert(price, url):
-    message = f"🛒 Produit Leclerc disponible à {price:.2f}€ !\n\n👉 {url}"
+    message = f"🛒 Produit disponible à {price:.2f}€ !\n\n👉 {url}"
     for chat_id in CHAT_IDS:
         try:
             bot.send_message(chat_id=chat_id, text=message)
@@ -125,25 +154,27 @@ def send_alert(price, url):
 
 def run_bot():
     while True:
-        for product in PRODUCTS:
-            url = product["url"]
-            max_price = product["max_price"]
-            silent = product.get("silent", False)
-
-            print("\n🔁 Vérification du produit :", url)
-            in_stock, price = get_price_and_stock(url)
-
-            if in_stock and price is not None and price <= max_price:
-                print(f"✅ Produit en stock à {price}€, envoi de la notification...")
-                if not silent:
-                    send_alert(price, url)
+        for i in range(max(len(LECLERC_PRODUCTS), len(JOUECLUB_PRODUCTS))):
+            if i < len(LECLERC_PRODUCTS):
+                p = LECLERC_PRODUCTS[i]
+                in_stock, price = get_price_and_stock_leclerc(p["url"])
+                if in_stock and price is not None and price <= p["max_price"]:
+                    if not p.get("silent", False):
+                        send_alert(price, p["url"])
                 else:
-                    print("🔕 Mode silencieux activé pour ce produit — pas de notification envoyée.")
-            else:
-                print(f"❌ Produit non conforme : en stock={in_stock}, prix={price}, limite={max_price}€")
+                    print(f"❌ [Leclerc] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
-        wait = CHECK_INTERVAL + random.randint(5, 15)  # anti-ban delay
-        print(f"⏳ Attente de {wait} secondes avant prochaine vérification...")
+            if i < len(JOUECLUB_PRODUCTS):
+                p = JOUECLUB_PRODUCTS[i]
+                in_stock, price = get_price_and_stock_joueclub(p["url"])
+                if in_stock and price is not None and price <= p["max_price"]:
+                    if not p.get("silent", False):
+                        send_alert(price, p["url"])
+                else:
+                    print(f"❌ [JouéClub] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
+
+        wait = CHECK_INTERVAL + random.randint(5, 15)
+        print(f"⏳ Attente de {wait} secondes...")
         time.sleep(wait)
 
 if __name__ == "__main__":
