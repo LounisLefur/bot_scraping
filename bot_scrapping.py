@@ -27,7 +27,7 @@ LECLERC_PRODUCTS = [
 
 CULTURA_PRODUCTS = [
     {"url": "https://www.cultura.com/p-bundle-6-boosters-evolutions-primastiques-pokemon-11841902.html", "max_price": 50.0, "silent": False},
-    {"url": "https://www.cultura.com/p-coffret-pokemon-collection-speciale-pochette-a-accessoires-evoli-evolutions-prismatiques-11860027.html", "max_price": 50.0, "silent": True},
+    {"url": "https://www.cultura.com/p-coffret-pokemon-collection-speciale-pochette-a-accessoires-evoli-evolutions-prismatiques-11860027.html", "max_price": 50.0, "silent": False},
     {"url": "https://www.cultura.com/p-coffret-12-boosters-pokemon-ecarlate-et-violet-collection-premium-eaux-florissantes-11860026.html", "max_price": 120.0, "silent": False}
 ]
 
@@ -47,7 +47,6 @@ USER_AGENTS = [
 
 def setup_selenium():
     options = Options()
-    options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
