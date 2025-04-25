@@ -56,7 +56,7 @@ PRODUCTS = [
     },
 ]
 
-CHECK_INTERVAL = 60  # secondes (augmente pour limiter les blocages)
+CHECK_INTERVAL = 20  # secondes (augmente pour limiter les blocages)
 
 # --- TELEGRAM ---
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
