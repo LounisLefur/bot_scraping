@@ -47,13 +47,14 @@ USER_AGENTS = [
 
 def setup_selenium():
     options = Options()
+    # options.add_argument('--headless')  # ⬅️ Décommente pour Render / Commente pour voir le navigateur en local
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920x1080')
     options.add_argument('--user-agent=' + random.choice(USER_AGENTS))
-    driver = webdriver.Chrome(options=options)
-    return driver
+    options.add_argument('--user-data-dir=/tmp/chrome-profile-' + str(random.randint(1000, 9999)))
+    return webdriver.Chrome(options=options)
 
 def get_price_and_stock_cultura(url):
     driver = setup_selenium()
@@ -61,16 +62,15 @@ def get_price_and_stock_cultura(url):
     time.sleep(5)
 
     try:
-        out_of_stock = driver.find_elements(By.CLASS_NAME, "stock.color-red")
-        available = driver.find_elements(By.CLASS_NAME, "addToCartPdp")
-        in_stock = len(out_of_stock) == 0 and len(available) > 0
+        in_stock = bool(driver.find_elements(By.CLASS_NAME, "addToCartPdp"))
     except Exception:
         in_stock = False
 
     try:
-        price_div = driver.find_element(By.CLASS_NAME, "price--big")
-        raw_price = price_div.text.strip().replace("\n", "").replace("€", "").replace(" ", "").replace(",", ".")
-        price = float(re.findall(r"\d+\.\d+", raw_price)[0])
+        price_block = driver.find_element(By.CLASS_NAME, "price--big")
+        price_text = price_block.text.replace("\n", "").replace(",", ".").replace("€", "").strip()
+        price_match = re.search(r"\d+(\.\d+)?", price_text)
+        price = float(price_match.group()) if price_match else None
     except Exception:
         price = None
 
@@ -106,6 +106,8 @@ def run_bot():
                 print(f"✅ Produit en stock à {price}€")
                 if not p.get("silent"):
                     send_alert(price, p["url"])
+                else:
+                    print("🔕 Mode silencieux activé pour ce produit — pas de notification envoyée.")
             else:
                 print(f"❌ [Leclerc] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
@@ -116,6 +118,8 @@ def run_bot():
                 print(f"✅ Produit en stock à {price}€")
                 if not p.get("silent"):
                     send_alert(price, p["url"])
+                else:
+                    print("🔕 Mode silencieux activé pour ce produit — pas de notification envoyée.")
             else:
                 print(f"❌ [Cultura] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
