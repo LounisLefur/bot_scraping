@@ -4,6 +4,7 @@ import time
 import telegram
 import os
 import random
+import re
 
 # --- CONFIG ---
 LECLERC_PRODUCTS = [
@@ -133,31 +134,26 @@ def get_price_and_stock_cultura(url):
         "Accept-Language": "fr-FR,fr;q=0.9"
     }
     response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    html = response.text
 
     print("\n🔍 [Cultura] URL testée :", url)
 
-    button_tag = soup.find("button", class_="addToCartPdp")
-    in_stock = button_tag is not None
-    print("📦 Bloc stock trouvé :", button_tag)
+    # Stock
+    in_stock = "ajouter au panier" in html.lower()
+    print("📦 Bloc stock trouvé :", in_stock)
 
+    # Prix
+    price = None
     try:
-        price_block = soup.find("div", class_="price--big")
-        if price_block:
-            parts = price_block.stripped_strings
-            parts = list(parts)
-            if len(parts) >= 2:
-                euros = parts[0].strip()
-                cents = parts[1].replace(",", ".").replace("€", "").strip()
-                price = float(f"{euros}.{cents}")
-            else:
-                price = None
+        match = re.search(r'<div class="d-block price price--big color-bluedark"[^>]*?>\s*(\d+)<span class="price__cents">,(\d+)€</span>', html)
+        if match:
+            euros, cents = match.groups()
+            price = float(f"{euros}.{cents}")
+            print("💶 Prix détecté :", euros, "euros et", cents, "centimes")
         else:
-            price = None
-        print("💶 Prix détecté :", price)
+            print("❌ Aucun bloc de prix détecté sur la page Cultura")
     except Exception as e:
-        print("❌ Erreur lors de l'extraction du prix (Cultura) :", e)
-        price = None
+        print("❌ Erreur d'extraction du prix (Cultura) :", e)
 
     return in_stock, price
 
