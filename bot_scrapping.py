@@ -65,19 +65,24 @@ LECLERC_PRODUCTS = [
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-ex-mars-0196214106598",
         "max_price": 60.0,
-        "silent": True
+        "silent": False
     },
 ]
 
-JOUECLUB_PRODUCTS = [
+CULTURA_PRODUCTS = [
     {
-        "url": "https://www.joueclub.fr/pokemon/pokemon-coffret-accessoires-5-boosters-sac-de-rangement-0196214106024.html",
+        "url": "https://www.cultura.com/p-bundle-6-boosters-evolutions-primastiques-pokemon-11841902.html",
+        "max_price": 400.0,
+        "silent": False
+    },
+    {
+        "url": "https://www.cultura.com/p-coffret-pokemon-collection-speciale-pochette-a-accessoires-evoli-evolutions-prismatiques-11860027.html",
         "max_price": 50.0,
         "silent": False
     },
     {
-        "url": "https://www.joueclub.fr/pokemon/pokemon-deck-de-combat-q2-0820650558207.html",
-        "max_price": 50.0,
+        "url": "https://www.cultura.com/p-coffret-12-boosters-pokemon-ecarlate-et-violet-collection-premium-eaux-florissantes-11860026.html",
+        "max_price": 120.0,
         "silent": False
     },
 ]
@@ -124,7 +129,7 @@ def get_price_and_stock_leclerc(url):
 
     return in_stock, price
 
-def get_price_and_stock_joueclub(url):
+def get_price_and_stock_cultura(url):
     headers = {
         "User-Agent": random.choice(USER_AGENTS),
         "Accept-Language": "fr-FR,fr;q=0.9"
@@ -132,20 +137,25 @@ def get_price_and_stock_joueclub(url):
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    print("\n🔍 [JouéClub] URL testée :", url)
+    print("\n🔍 [Cultura] URL testée :", url)
 
-    availability_block = soup.find("div", class_="c-product-add-to-cart-block__avaibility")
-    print("📦 Bloc disponibilité trouvé :", availability_block)
-    in_stock = availability_block and "stock" in availability_block.text.lower()
+    # Vérification de la disponibilité
+    stock_tag = soup.find("div", class_="c-product-add-to-cart-block__avaibility")
+    button_tag = soup.find("button", class_="addToCartPdp")
+    in_stock = (stock_tag and "Stock en ligne" in stock_tag.text) or button_tag is not None
+    print("📦 Bloc stock trouvé :", stock_tag or button_tag)
 
+    # Extraction du prix
     try:
-        price_block = soup.find("strong", class_="scalapay-price") or soup.find("div", class_="scalapay-price")
-        print("💶 Bloc prix trouvé :", price_block)
-        price_text = price_block.text.strip().replace("\xa0€", "").replace("€", "").replace(",", ".") if price_block else ""
-        price = float(price_text)
+        price_block = soup.find("div", class_="price--big")
+        if price_block:
+            full_price = price_block.text.strip().replace("€", "").replace("\xa0", "").replace(",", ".")
+            price = float(full_price)
+        else:
+            price = None
         print("💶 Prix détecté :", price)
     except Exception as e:
-        print("❌ Erreur lors de l'extraction du prix (JouéClub) :", e)
+        print("❌ Erreur lors de l'extraction du prix (Cultura) :", e)
         price = None
 
     return in_stock, price
@@ -161,30 +171,27 @@ def send_alert(price, url):
 
 def run_bot():
     while True:
-        for i in range(max(len(LECLERC_PRODUCTS), len(JOUECLUB_PRODUCTS))):
-            if i < len(LECLERC_PRODUCTS):
-                p = LECLERC_PRODUCTS[i]
-                in_stock, price = get_price_and_stock_leclerc(p["url"])
-                if in_stock and price is not None and price <= p["max_price"]:
-                    print(f"✅ [Leclerc] Produit en stock à {price}€")
-                    if not p.get("silent", False):
-                        send_alert(price, p["url"])
-                    else:
-                        print("🔕 [Leclerc] Mode silencieux — pas de notification envoyée.")
+        for p in LECLERC_PRODUCTS:
+            in_stock, price = get_price_and_stock_leclerc(p["url"])
+            if in_stock and price is not None and price <= p["max_price"]:
+                print(f"✅ [Leclerc] Produit en stock à {price}€")
+                if not p.get("silent", False):
+                    send_alert(price, p["url"])
                 else:
-                    print(f"❌ [Leclerc] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
+                    print("🔕 [Leclerc] Mode silencieux — pas de notification envoyée.")
+            else:
+                print(f"❌ [Leclerc] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
-            if i < len(JOUECLUB_PRODUCTS):
-                p = JOUECLUB_PRODUCTS[i]
-                in_stock, price = get_price_and_stock_joueclub(p["url"])
-                if in_stock and price is not None and price <= p["max_price"]:
-                    print(f"✅ [JouéClub] Produit en stock à {price}€")
-                    if not p.get("silent", False):
-                        send_alert(price, p["url"])
-                    else:
-                        print("🔕 [JouéClub] Mode silencieux — pas de notification envoyée.")
+        for p in CULTURA_PRODUCTS:
+            in_stock, price = get_price_and_stock_cultura(p["url"])
+            if in_stock and price is not None and price <= p["max_price"]:
+                print(f"✅ [Cultura] Produit en stock à {price}€")
+                if not p.get("silent", False):
+                    send_alert(price, p["url"])
                 else:
-                    print(f"❌ [JouéClub] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
+                    print("🔕 [Cultura] Mode silencieux — pas de notification envoyée.")
+            else:
+                print(f"❌ [Cultura] Non conforme : en stock={in_stock}, prix={price}, max={p['max_price']}")
 
         wait = CHECK_INTERVAL + random.randint(5, 15)
         print(f"⏳ Attente de {wait} secondes...")
