@@ -15,11 +15,6 @@ PRODUCTS = [
         "silent": False
     },
     {
-        "url": "https://www.e.leclerc/fp/pokemon-mini-tin-2-booster-0820650550744",
-        "max_price": 20.0,
-        "silent": False
-    },
-    {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-dresseur-d-elite-pokevx5eli-0196214105140",
         "max_price": 80.0,
         "silent": False
@@ -35,18 +30,8 @@ PRODUCTS = [
         "silent": False
     },
     {
-        "url": "https://www.e.leclerc/fp/pokemon-tech-sticker-3-pack-blister-0196214105249",
-        "max_price": 30.0,
-        "silent": False
-    },
-    {
         "url": "https://www.e.leclerc/fp/pokemon-mini-tin-0196214105560?srsltid=AfmBOorSuqG5mXuj-cMO7oqRKa0oVZig00JEptbtVCqgm9XSxhcxgt6N",
         "max_price": 20.0,
-        "silent": False
-    },
-    {
-        "url": "https://www.e.leclerc/fp/pokemon-coffret-poster-0196214105423?srsltid=AfmBOorHdPJC3WylpiPQJBMEVtjYHwlnnfMUwUxoz5m3MaDSr3Ssp5OI",
-        "max_price": 35.0,
         "silent": False
     },
     {
