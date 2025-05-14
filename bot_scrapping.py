@@ -12,7 +12,7 @@ PRODUCTS = [
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-de-rangement-4b-0196214105973",
         "max_price": 45.0,
-        "silent": True
+        "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-mini-tin-2-booster-0820650550744",
@@ -52,7 +52,7 @@ PRODUCTS = [
     {
         "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0196214106154",
         "max_price": 50.0,
-        "silent": True
+        "silent": False
     },
 ]
 
