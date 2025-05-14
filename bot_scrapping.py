@@ -36,7 +36,7 @@ PRODUCTS = [
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0196214106154",
-        "max_price": 90.0,
+        "max_price": 50.0,
         "silent": False
     },
 ]
