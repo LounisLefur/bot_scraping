@@ -76,8 +76,20 @@ def get_price_and_stock(url):
         "User-Agent": random.choice(USER_AGENTS),
         "Accept-Language": "fr-FR,fr;q=0.9"
     }
+
     response = requests.get(url, headers=headers)
+
+    if response.status_code == 429:
+        print("🚨 Trop de requêtes (429 Too Many Requests) — pause prolongée...")
+        time.sleep(300)  # attend 5 minutes
+        return False, None
+
     soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Heure actuelle en France
+    now = datetime.now(pytz.timezone("Europe/Paris")).strftime("%Y-%m-%d %H:%M:%S")
+    print(f"\n⏰ [{now}] Vérification de l'URL : {url}")
+    print("🔍 HTML reçu (extrait) :", response.text[:1000])
 
     # Heure actuelle en France
     now = datetime.now(pytz.timezone("Europe/Paris")).strftime("%Y-%m-%d %H:%M:%S")
