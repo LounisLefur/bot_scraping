@@ -10,8 +10,13 @@ import pytz
 # --- CONFIG ---
 PRODUCTS = [
     {
-        "url": "https://www.e.leclerc/fp/pokemon-coffret-de-rangement-4b-0196214105973",
-        "max_price": 45.0,
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-dresseur-d-elite-pokevx5eli-0196214105140",
+        "max_price": 80.0,
+        "silent": False
+    },
+    {
+        "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0196214106154?srsltid=AfmBOoqUWWGRaaCQOUooZ4gST5ONtEDvHqk7ivx95QjfTcEfeji3t5CU",
+        "max_price": 50.0,
         "silent": False
     },
     {
@@ -20,7 +25,7 @@ PRODUCTS = [
         "silent": False
     },
     {
-        "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0820650556425",
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-de-rangement-4b-0196214105973",
         "max_price": 50.0,
         "silent": False
     },
@@ -30,13 +35,13 @@ PRODUCTS = [
         "silent": False
     },
     {
-        "url": "https://www.e.leclerc/fp/pokemon-mini-tin-0196214105560?srsltid=AfmBOorSuqG5mXuj-cMO7oqRKa0oVZig00JEptbtVCqgm9XSxhcxgt6N",
-        "max_price": 20.0,
+        "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0820650556425",
+        "max_price": 50.0,
         "silent": False
     },
     {
-        "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0196214106154",
-        "max_price": 50.0,
+        "url": "https://www.e.leclerc/fp/pokemon-mini-tin-0196214105560?srsltid=AfmBOorSuqG5mXuj-cMO7oqRKa0oVZig00JEptbtVCqgm9XSxhcxgt6N",
+        "max_price": 20.0,
         "silent": False
     },
 ]
@@ -61,20 +66,8 @@ def get_price_and_stock(url):
         "User-Agent": random.choice(USER_AGENTS),
         "Accept-Language": "fr-FR,fr;q=0.9"
     }
-
     response = requests.get(url, headers=headers)
-
-    if response.status_code == 429:
-        print("🚨 Trop de requêtes (429 Too Many Requests) — pause prolongée...")
-        time.sleep(300)  # attend 5 minutes
-        return False, None
-
     soup = BeautifulSoup(response.text, 'html.parser')
-
-    # Heure actuelle en France
-    now = datetime.now(pytz.timezone("Europe/Paris")).strftime("%Y-%m-%d %H:%M:%S")
-    print(f"\n⏰ [{now}] Vérification de l'URL : {url}")
-    print("🔍 HTML reçu (extrait) :", response.text[:1000])
 
     # Heure actuelle en France
     now = datetime.now(pytz.timezone("Europe/Paris")).strftime("%Y-%m-%d %H:%M:%S")
@@ -90,17 +83,10 @@ def get_price_and_stock(url):
     try:
         euros_tag = soup.find("span", class_="vcEUR")
         cents_tag = soup.find("span", class_="bYgjT")
-
-        euros = euros_tag.text.strip().replace(" ", "") if euros_tag else ""
+        euros = euros_tag.text.strip() if euros_tag else ""
         cents = cents_tag.text.strip() if cents_tag else "00"
-
-        if euros and cents:
-            full_price = f"{euros}.{cents}"
-            price = float(full_price)
-        else:
-            price = None
-
         print("💶 Prix détecté :", euros, "euros et", cents, "centimes")
+        price = float(f"{euros}.{cents}") if euros and cents else None
     except Exception as e:
         print("❌ Erreur lors de l'extraction du prix :", e)
         price = None
