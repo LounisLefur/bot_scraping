@@ -25,13 +25,13 @@ PRODUCTS = [
         "silent": False
     },
     {
-        "url": "https://www.e.leclerc/fp/pokemon-ev09-coffret-dresseur-d-elite-0196214108097",
-        "max_price": 80.0,
+        "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0820650556425",
+        "max_price": 50.0,
         "silent": False
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-accessoires-5b-0196214106024",
-        "max_price": 45.0,
+        "max_price": 55.0,
         "silent": False
     },
     {
@@ -46,12 +46,12 @@ PRODUCTS = [
     },
     {
         "url": "https://www.e.leclerc/fp/pokemon-coffret-poster-0196214105423?srsltid=AfmBOorHdPJC3WylpiPQJBMEVtjYHwlnnfMUwUxoz5m3MaDSr3Ssp5OI",
-        "max_price": 30.0,
+        "max_price": 35.0,
         "silent": False
     },
     {
-        "url": "https://www.e.leclerc/fp/pokemon-coffret-ex-mars-0196214106598",
-        "max_price": 60.0,
+        "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0196214106154",
+        "max_price": 50.0,
         "silent": True
     },
 ]
