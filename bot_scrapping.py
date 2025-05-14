@@ -105,10 +105,17 @@ def get_price_and_stock(url):
     try:
         euros_tag = soup.find("span", class_="vcEUR")
         cents_tag = soup.find("span", class_="bYgjT")
-        euros = euros_tag.text.strip() if euros_tag else ""
+
+        euros = euros_tag.text.strip().replace(" ", "") if euros_tag else ""
         cents = cents_tag.text.strip() if cents_tag else "00"
+
+        if euros and cents:
+            full_price = f"{euros}.{cents}"
+            price = float(full_price)
+        else:
+            price = None
+
         print("💶 Prix détecté :", euros, "euros et", cents, "centimes")
-        price = float(f"{euros}.{cents}") if euros and cents else None
     except Exception as e:
         print("❌ Erreur lors de l'extraction du prix :", e)
         price = None
