@@ -35,8 +35,8 @@ PRODUCTS = [
         "silent": False
     },
     {
-        "url": "https://www.e.leclerc/fp/pokemon-bundle-6-boosters-0820650556425",
-        "max_price": 50.0,
+        "url": "https://www.e.leclerc/fp/pokemon-coffret-super-premium-collection-0196214106079",
+        "max_price": 150.0,
         "silent": False
     },
     {
